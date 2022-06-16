@@ -4,7 +4,7 @@ export default class TxnVerifer{
   constructor(){
     this.errorCheck = {};
     this.max64 = (2**64)-1;
-    this.idTable= {"mainnet-v1.0":"wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=",
+    this.idTable= {"mainnet-v1.0": "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=",
         "testnet-v1.0":	"SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
         "betanet-v1.0":	"mFgazF+2uRS1tMiL9dsj01hJGySEmPN28B/TjjvpVW0="};
   }
@@ -43,9 +43,10 @@ export default class TxnVerifer{
           if(txn[requirement] instanceof Uint32Array){
             this.throw(4300, 'genesisHash must be Uint32Array');
           }
-          // if(!Object.values(this.idTable).includes(txn[requirement])){
-          //   this.throw(4300, 'genesisHash must be valid network hash');
-          // }
+          let hashString = this.buf264(txn[requirement]);
+          if(!Object.values(this.idTable).includes(hashString)){
+            this.throw(4300, 'genesisHash must be valid network hash');
+          }
         }
         if(requirement === "lastRound"){
           if(!Number.isInteger(txn[requirement]) || txn[requirement]<1 || txn[requirement]>this.max64){
@@ -251,7 +252,7 @@ export default class TxnVerifer{
           }
           for (var opt of AppCallOpt){
             if(txn.hasOwnProperty(opt)){
-              if(opt === "apat" && !this.arrayCheck(txn[opt])){
+              if(opt === "apat" && !this.arrayAddressCheck(txn[opt])){
                 this.throw(4300, 'apat must be an array of valid addresses');
               }
               if(opt === "apap" && txn[opt].byteLength === undefined){
@@ -289,6 +290,12 @@ export default class TxnVerifer{
   }
   stringBytes(str){
     return Buffer.from(str).length;
+  }
+  buf264(buf){
+    var binstr = Array.prototype.map.call(buf, function (ch) {
+        return String.fromCharCode(ch);
+    }).join('');
+    return btoa(binstr);
   }
   checkAddress(addr){
     try{
