@@ -105,7 +105,7 @@ export default class TxnVerifer{
     }
     if(this.errorCheck.valid===true){
       if(txn.type === "pay"){
-        if(txn.rcv && txn.amount){
+        if(txn.hasOwnProperty('rcv') && txn.hasOwnProperty('amount')){
           if(!this.checkAddress(txn.rcv)){
             this.throw(4300, 'rcv must be a valid receiver address');
           }
@@ -115,7 +115,7 @@ export default class TxnVerifer{
         } else {
           this.throw(4300, 'rcv and amount fields are required in Payment Transaction');
         }
-        if(txn.close && !this.checkAddress(txn.close)){
+        if(txn.hasOwnProperty('close') && !this.checkAddress(txn.close)){
           this.throw(4300, 'close must be a valid CloseRemainderTo address');
         }
       }
