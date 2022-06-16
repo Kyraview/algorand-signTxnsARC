@@ -8,8 +8,6 @@ testTxns();
 async function testTxns(){
   var account = algosdk.generateAccount();
   var passphrase = algosdk.secretKeyToMnemonic(account.sk);
-  
-  const indexerServer = 'http://testnet-idx.algonode.network';
 
   const token = '';
   const algodServer = 'https://testnet-api.algonode.cloud';
