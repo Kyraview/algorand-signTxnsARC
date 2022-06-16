@@ -2,18 +2,19 @@ import algosdk from 'algosdk';
 
 export default class TxnVerifer{
   constructor(){
-    this.errorCheck = 
-    {   
-      valid:true,
-      error:[],
-      warnings:[]
-    };
+    this.errorCheck = {};
     this.max64 = (2**64)-1;
     this.idTable= {"mainnet-v1.0":"wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=",
         "testnet-v1.0":	"SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
         "betanet-v1.0":	"mFgazF+2uRS1tMiL9dsj01hJGySEmPN28B/TjjvpVW0="};
   }
   verifyTxn(txn){
+    this.errorCheck = 
+    {   
+      valid:true,
+      error:[],
+      warnings:[]
+    };
     const Required = ["type", "snd", "fee", "firstRound", "lastRound", "genesisHash"];
     const Optional = ["gen", "grp", "lx", "note", "rekey"];
     const AssetParamsOpt = ["un", "an", "au", "am", "m", "r", "f", "c"];
@@ -122,11 +123,11 @@ export default class TxnVerifer{
         this.throw(4200, 'this wallet does not support a Key Registration Txn');
       }
       else if(txn.type === "acfg"){
-        if(txn.caid && txn.apar){
-          if(!Number.isInteger(txn.caid) || txn.caid<0 || txn.caid>this.max64){
-            this.throw(4300, 'caid must be a uint64 between 0 and 18446744073709551615');
+        if(typeof txn.assetIndex != 'undefined' && txn.apar){
+          if(!Number.isInteger(txn.assetIndex) || txn.assetIndex<0 || txn.assetIndex>this.max64){
+            this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
           }
-          if(txn.caid === 0){
+          if(txn.assetIndex === 0){
             if(!Number.isInteger(txn.apar.t) || txn.apar.t<1 || txn.apar.t>this.max64){
               this.throw(4300, 'apar.t must be a uint64 between 1 and 18446744073709551615');
             }
@@ -169,20 +170,20 @@ export default class TxnVerifer{
             }
           }
         } else {
-          this.throw(4300, 'caid and apar fields are required in Asset Config Txn; 0 for caid on asset creation; apar is omitted on asset destroy');
+          this.throw(4300, 'assetIndex and apar fields are required in Asset Config Txn; 0 for assetIndex on asset creation; apar is omitted on asset destroy');
         }
       }
       else if(txn.type === "axfer"){
         //asset clawback
-        if(txn.snd && txn.xaid && txn.aamt && txn.asnd && txn.arcv){
+        if(txn.hasOwnProperty('snd') && txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('amount') && txn.hasOwnProperty('asnd') && txn.hasOwnProperty('arcv')){
           if(!this.checkAddress(txn.snd)){
             this.throw(4300, 'snd must be a valid Sender address');
           }
-          if(!Number.isInteger(txn.xaid) || txn.xaid<0 || txn.xaid>this.max64){
-            this.throw(4300, 'xaid must be a uint64 between 0 and 18446744073709551615');
+          if(!Number.isInteger(txn.assetIndex) || txn.assetIndex<0 || txn.assetIndex>this.max64){
+            this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
           }
-          if(!Number.isInteger(txn.aamt) || txn.aamt<0 || txn.aamt>this.max64){
-            this.throw(4300, 'aamt must be a uint64 between 0 and 18446744073709551615');
+          if(!Number.isInteger(txn.amount) || txn.amount<0 || txn.amount>this.max64){
+            this.throw(4300, 'amount must be a uint64 between 0 and 18446744073709551615');
           }
           if(!this.checkAddress(txn.asnd)){
             this.throw(4300, 'asnd must be a valid AssetSender address');
@@ -192,12 +193,12 @@ export default class TxnVerifer{
           }
         }
         //asset xfer
-        else if(txn.xaid && txn.aamt && txn.asnd && txn.arcv){
-          if(!Number.isInteger(txn.xaid) || txn.xaid<0 || txn.xaid>this.max64){
-            this.throw(4300, 'xaid must be a uint64 between 0 and 18446744073709551615');
+        else if(txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('amount') && txn.hasOwnProperty('asnd') && txn.hasOwnProperty('arcv')){
+          if(!Number.isInteger(txn.assetIndex) || txn.assetIndex<0 || txn.assetIndex>this.max64){
+            this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
           }
-          if(!Number.isInteger(txn.aamt) || txn.aamt<0 || txn.aamt>this.max64){
-            this.throw(4300, 'aamt must be a uint64 between 0 and 18446744073709551615');
+          if(!Number.isInteger(txn.amount) || txn.amount<0 || txn.amount>this.max64){
+            this.throw(4300, 'amount must be a uint64 between 0 and 18446744073709551615');
           }
           if(!this.checkAddress(txn.asnd)){
             this.throw(4300, 'asnd must be a valid AssetSender address');
@@ -210,9 +211,9 @@ export default class TxnVerifer{
           }
         }
         //asset accept
-        else if(txn.xaid && txn.snd && txn.arcv){
-          if(!Number.isInteger(txn.xaid) || txn.xaid<0 || txn.xaid>this.max64){
-            this.throw(4300, 'xaid must be a uint64 between 0 and 18446744073709551615');
+        else if(txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('snd') && txn.hasOwnProperty('arcv')){
+          if(!Number.isInteger(txn.assetIndex) || txn.assetIndex<0 || txn.assetIndex>this.max64){
+            this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
           }
           if(!this.checkAddress(txn.snd)){
             this.throw(4300, 'snd must be a valid Sender address');
@@ -222,26 +223,26 @@ export default class TxnVerifer{
           }
         }
         else{
-          this.throw(4300, 'all required fields need to filled according to if a Asset Transfer, Asset Accept, or Asset Clawback Txn was chosen')
+          this.throw(4300, 'all required fields need to filled according to if an Asset Transfer, Asset Accept, or Asset Clawback Txn was chosen')
         }
       }
       else if(txn.type === "afrz"){
-        if(txn.fadd && txn.faid && txn.afrz){
+        if(txn.hasOwnProperty('fadd') && txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('afrz')){
           if(!this.checkAddress(txn.fadd)){
             this.throw(4300, 'fadd must be a valid FreezeAccount address');
           }
-          if(!Number.isInteger(txn.faid) || txn.faid<0 || txn.faid>this.max64){
-            this.throw(4300, 'faid must be a uint64 between 0 and 18446744073709551615');
+          if(!Number.isInteger(txn.assetIndex) || txn.assetIndex<0 || txn.assetIndex>this.max64){
+            this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
           }
           if(typeof txn.afrz !== 'boolean'){
             this.throw(4300, 'afrz must be a boolean')
           }
         } else {
-          this.throw(4300, 'fadd, faid, and afrz fields are required in Asset Freeze Txn');
+          this.throw(4300, 'fadd, assetIndex, and afrz fields are required in Asset Freeze Txn');
         }
       }
       else if(txn.type === "appl"){
-        if(txn.apid && txn.apan){
+        if(txn.hasOwnProperty('apid') && txn.hasOwnProperty('apan')){
           if(!Number.isInteger(txn.apid) || txn.apid<0 || txn.apid>this.max64){
             this.throw(4300, 'apid must be a uint64 between 0 and 18446744073709551615; apid should be empty if creating');
           }
@@ -296,7 +297,9 @@ export default class TxnVerifer{
     return Buffer.from(str).length;
   }
   checkAddress(addr){
-    addr = algosdk.encodeAddress(addr.publicKey);
+    try{
+      addr = algosdk.encodeAddress(addr.publicKey);
+    } catch {}
     return algosdk.isValidAddress(addr);
   }
   arrayAddressCheck(array){
