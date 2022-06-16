@@ -23,6 +23,10 @@ async function testTxns(){
     amount: 100000,
     assetIndex: 100000,
     from: myAccount.addr,
+    numGlobalInts: 100,
+    numGlobalByteSlices: 100,
+    numLocalInts: 100,
+    numLocalByteSlices: 100,
     note: enc.encode("Hello World"),
     strictEmptyAddressChecking: false,
     suggestedParams:suggestedParams,
@@ -68,26 +72,43 @@ async function testTxns(){
   axferTxn.snd=axferTxn.from;
   axferTxn.asnd=axferTxn.from;
   axferTxn.arcv=axferTxn.to;
+  console.log('showing of the stacked errors feature\n');
   console.log('valid axfer txn: ',verifier.verifyTxn(axferTxn),'\n');
-  axferTemp=Object.create(axferTxn);
+  axferTemp=axferTxn;
   axferTemp.assetIndex=-15;
   console.log('invalid assetIndex: ',verifier.verifyTxn(axferTemp),'\n');
-  axferTemp=Object.create(axferTxn);
+  axferTemp=axferTxn;
+  axferTemp.aclose=-15;
+  console.log('invalid AssetCloseTo address but uncaught due to being a clawback txn: ',verifier.verifyTxn(axferTemp),'\n');
+  axferTemp=axferTxn;
   axferTemp.arcv=-15;
-  console.log('invalid AssetCloseTo address, but not a looked at due to being a : ',verifier.verifyTxn(axferTemp),'\n');
-  axferTemp=Object.create(axferTxn);
-  axferTemp.assetIndex=-15;
-  console.log('invalid amount: ',verifier.verifyTxn(axferTemp),'\n\n');
+  console.log('invalid AssetReceiver address: ',verifier.verifyTxn(axferTemp),'\n\n');
 
   let afrzTxn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject(overallParams);
+  let afrzTemp;
   afrzTxn.snd=afrzTxn.from;
   afrzTxn.fadd=afrzTxn.from;
   afrzTxn.afrz=true;
   console.log('valid asset freeze txn: ',verifier.verifyTxn(afrzTxn),'\n');
+  afrzTemp=afrzTxn;
+  afrzTemp.fadd='wrong';
+  console.log('invalid FreezeAccount: ',verifier.verifyTxn(afrzTemp),'\n');
+  afrzTemp.assetIndex='wrong';
+  console.log('invalid assetIndex: ',verifier.verifyTxn(afrzTemp),'\n');
+  afrzTemp.afrz='wrong';
+  console.log('invalid AssetFrozen: ',verifier.verifyTxn(afrzTemp),'\n\n');
 
   let applTxn = algosdk.makeApplicationCallTxnFromObject(overallParams);
+  let applTemp;
   applTxn.snd=applTxn.from;
   applTxn.apid=100000;
   applTxn.apan=0;
   console.log('valid application call txn: ',verifier.verifyTxn(applTxn),'\n');
+  applTemp=applTxn;
+  applTemp.apas='wrong';
+  console.log('invalid ForeignAssets: ',verifier.verifyTxn(applTemp),'\n');
+  applTemp.apas=[applTxn.from,applTxn.snd];
+  console.log('valid ForeignAssets: ',verifier.verifyTxn(applTemp),'\n');
+  applTemp.appGlobalInts='wrong';
+  console.log('invalid numGlobalInts: ',verifier.verifyTxn(applTemp),'\n');
 }

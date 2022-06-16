@@ -18,7 +18,7 @@ export default class TxnVerifer{
     const Required = ["type", "snd", "fee", "firstRound", "lastRound", "genesisHash"];
     const Optional = ["gen", "grp", "lx", "note", "rekey"];
     const AssetParamsOpt = ["un", "an", "au", "am", "m", "r", "f", "c"];
-    const AppCallOpt = ["apat", "apap", "apaa", "apsu", "apfa", "apas", "apgs", "apls", "apep"];
+    const AppCallOpt = ["apat", "apap", "apaa", "apsu", "apfa", "apas", "appLocalInts", "appLocalByteSlices", "appGlobalInts", "appGlobalByteSlices", "apep"];
     for(var requirement of Required){
       if(!txn[requirement]){
         this.throw(4300, 'Required field missing: '+requirement);
@@ -206,7 +206,7 @@ export default class TxnVerifer{
           if(!this.checkAddress(txn.arcv)){
             this.throw(4300, 'arcv must be a valid AssetReceiver address');
           }
-          if(txn.aclose && !this.checkAddress(txn.aclose)){
+          if(txn.hasOwnProperty('aclose') && !this.checkAddress(txn.aclose)){
             this.throw(4300, 'aclose must be a valid AssestCloseTo address');
           }
         }
@@ -263,21 +263,15 @@ export default class TxnVerifer{
               if(opt === "apsu" && txn[opt].byteLength === undefined){
                 this.throw(4300, 'apsu must be a []byte')
               }
-              if(opt === "apfa" && !this.arrayCheck(txn[opt])){
+              if(opt === "apfa" && !this.arrayAddressCheck(txn[opt])){
                 this.throw(4300, 'apfa must be an array of valid addresses');
               }
-              if(opt === "apas" && !this.arrayCheck(txn[opt])){
+              if(opt === "apas" && !this.arrayAddressCheck(txn[opt])){
                 this.throw(4300, 'apas must be an array of valid addresses');
               }
-              if(opt === "apgs"){
-                this.stateSchemaCheck(txn[opt], opt);
-              }
-              if(opt === "apls"){
-                this.stateSchemaCheck(txn[opt], opt);
-              }
-              if(opt === "apep" && txn[opt].byteLength){
-                if(txn[opt].byteLength>2048){
-                  this.throw(4300, 'apep must be a Uint8Array with less than or equal to 2048 bytes');
+              if(opt === "appGlobalInts" || opt === "appGlobalByteSlices" || opt === "appLocalByteSlices" || opt === "appLocalByteSlices"){
+                if(!Number.isInteger(txn[opt]) || txn[opt]<0 || txn[opt]>this.max64){
+                  this.throw(4300, opt+' must be a uint64 between 0 and 18446744073709551615');
                 }
               }
             }
@@ -304,30 +298,14 @@ export default class TxnVerifer{
   }
   arrayAddressCheck(array){
     if(Object.prototype.toString.call(array) === '[object Array]') {
-      for(address of array){
-        if(!algosdk.isValidAddress(address)){
+      for(var address of array){
+        if(!this.checkAddress(address)){
           return false;
         }
       }
       return true;
     }
     return false;
-  }
-  stateSchemaCheck(stateObj,codecName){
-    if(typeof stateObj === "object"){
-      if(stateObj.nui && stateObj.nbs){
-        if(!Number.isInteger(stateObj.nui) || stateObj.nui<0 || stateObj.nui>this.max64){
-          this.throw(4300, codecName+'.nui must be a uint64 between 0 and 18446744073709551615');
-        }
-        if(!Number.isInteger(stateObj.nbs) || stateObj.nbs<0 || stateObj.nbs>this.max64){
-          this.throw(4300, codecName+'.nbs must be a uint64 between 0 and 18446744073709551615');
-        }
-      } else{
-        this.throw(4300, codecName+' must be an object with {nui:uint64, nbs:uint64}');
-      }
-    } else{
-      this.throw(4300, codecName+' must be an object with {nui:uint64, nbs:uint64}');
-    }
   }
   throw(code, message){
     this.errorCheck.valid=false;
