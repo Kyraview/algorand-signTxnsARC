@@ -15,7 +15,7 @@ export default class TxnVerifer{
       error:[],
       warnings:[]
     };
-    const Required = ["type", "snd", "fee", "firstRound", "lastRound", "genesisHash"];
+    const Required = ["type", "from", "fee", "firstRound", "lastRound", "genesisHash"];
     const Optional = ["gen", "grp", "lx", "note", "rekey"];
     const AssetParamsOpt = ["un", "an", "au", "am", "m", "r", "f", "c"];
     const AppCallOpt = ["apat", "apap", "apaa", "apsu", "apfa", "apas", "appLocalInts", "appLocalByteSlices", "appGlobalInts", "appGlobalByteSlices", "apep"];
@@ -56,9 +56,9 @@ export default class TxnVerifer{
             this.throw(4300, 'lastRound must be greater or equal to firstRound');
           }
         }
-        if(requirement === "snd"){
+        if(requirement === "from"){
           if(!this.checkAddress(txn[requirement])){
-            this.throw(4300, 'snd must be a valid sender address');
+            this.throw(4300, 'from must be a valid sender address');
           }
         }
         if(requirement === "type"){
@@ -106,15 +106,15 @@ export default class TxnVerifer{
     }
     if(this.errorCheck.valid===true){
       if(txn.type === "pay"){
-        if(txn.hasOwnProperty('rcv') && txn.hasOwnProperty('amount')){
-          if(!this.checkAddress(txn.rcv)){
-            this.throw(4300, 'rcv must be a valid receiver address');
+        if(txn.hasOwnProperty('to') && txn.hasOwnProperty('amount')){
+          if(!this.checkAddress(txn.to)){
+            this.throw(4300, 'to must be a valid receiver address');
           }
           if(!Number.isInteger(txn.amount) || txn.amount<0 || txn.amount>this.max64){
             this.throw(4300, 'amount must be a uint64 between 0 and 18446744073709551615');
           }
         } else {
-          this.throw(4300, 'rcv and amount fields are required in Payment Transaction');
+          this.throw(4300, 'to and amount fields are required in Payment Transaction');
         }
         if(txn.hasOwnProperty('close') && !this.checkAddress(txn.close)){
           this.throw(4300, 'close must be a valid CloseRemainderTo address');
@@ -124,7 +124,7 @@ export default class TxnVerifer{
         this.throw(4200, 'this wallet does not support a Key Registration Txn');
       }
       else if(txn.type === "acfg"){
-        if(typeof txn.assetIndex != 'undefined' && txn.apar){
+        if(txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('apar')){
           if(!Number.isInteger(txn.assetIndex) || txn.assetIndex<0 || txn.assetIndex>this.max64){
             this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
           }
@@ -139,7 +139,7 @@ export default class TxnVerifer{
               this.throw(4300, 'apar.df must be a boolean')
             }
           }
-          if(txn.apar){
+          if(txn.hasOwnProperty('apar')){
             for (var opt of AssetParamsOpt){
               if(txn.apar.hasOwnProperty(opt)){
                 if(opt === "un"){
@@ -176,9 +176,9 @@ export default class TxnVerifer{
       }
       else if(txn.type === "axfer"){
         //asset clawback
-        if(txn.hasOwnProperty('snd') && txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('amount') && txn.hasOwnProperty('asnd') && txn.hasOwnProperty('arcv')){
-          if(!this.checkAddress(txn.snd)){
-            this.throw(4300, 'snd must be a valid Sender address');
+        if(txn.hasOwnProperty('from') && txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('amount') && txn.hasOwnProperty('afrom') && txn.hasOwnProperty('ato')){
+          if(!this.checkAddress(txn.from)){
+            this.throw(4300, 'from must be a valid Sender address');
           }
           if(!Number.isInteger(txn.assetIndex) || txn.assetIndex<0 || txn.assetIndex>this.max64){
             this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
@@ -186,41 +186,41 @@ export default class TxnVerifer{
           if(!Number.isInteger(txn.amount) || txn.amount<0 || txn.amount>this.max64){
             this.throw(4300, 'amount must be a uint64 between 0 and 18446744073709551615');
           }
-          if(!this.checkAddress(txn.asnd)){
-            this.throw(4300, 'asnd must be a valid AssetSender address');
+          if(!this.checkAddress(txn.afrom)){
+            this.throw(4300, 'afrom must be a valid AssetSender address');
           }
-          if(!this.checkAddress(txn.arcv)){
-            this.throw(4300, 'arcv must be a valid AssetReceiver address');
+          if(!this.checkAddress(txn.ato)){
+            this.throw(4300, 'ato must be a valid AssetReceiver address');
           }
         }
         //asset xfer
-        else if(txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('amount') && txn.hasOwnProperty('asnd') && txn.hasOwnProperty('arcv')){
+        else if(txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('amount') && txn.hasOwnProperty('afrom') && txn.hasOwnProperty('ato')){
           if(!Number.isInteger(txn.assetIndex) || txn.assetIndex<0 || txn.assetIndex>this.max64){
             this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
           }
           if(!Number.isInteger(txn.amount) || txn.amount<0 || txn.amount>this.max64){
             this.throw(4300, 'amount must be a uint64 between 0 and 18446744073709551615');
           }
-          if(!this.checkAddress(txn.asnd)){
-            this.throw(4300, 'asnd must be a valid AssetSender address');
+          if(!this.checkAddress(txn.afrom)){
+            this.throw(4300, 'afrom must be a valid AssetSender address');
           }
-          if(!this.checkAddress(txn.arcv)){
-            this.throw(4300, 'arcv must be a valid AssetReceiver address');
+          if(!this.checkAddress(txn.ato)){
+            this.throw(4300, 'ato must be a valid AssetReceiver address');
           }
           if(txn.hasOwnProperty('aclose') && !this.checkAddress(txn.aclose)){
             this.throw(4300, 'aclose must be a valid AssestCloseTo address');
           }
         }
         //asset accept
-        else if(txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('snd') && txn.hasOwnProperty('arcv')){
+        else if(txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('from') && txn.hasOwnProperty('ato')){
           if(!Number.isInteger(txn.assetIndex) || txn.assetIndex<0 || txn.assetIndex>this.max64){
             this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
           }
-          if(!this.checkAddress(txn.snd)){
-            this.throw(4300, 'snd must be a valid Sender address');
+          if(!this.checkAddress(txn.from)){
+            this.throw(4300, 'from must be a valid Sender address');
           }
-          if(!this.checkAddress(txn.arcv)){
-            this.throw(4300, 'arcv must be a valid AssetReceiver address');
+          if(!this.checkAddress(txn.ato)){
+            this.throw(4300, 'ato must be a valid AssetReceiver address');
           }
         }
         else{
