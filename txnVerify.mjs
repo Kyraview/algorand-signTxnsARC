@@ -16,7 +16,7 @@ export default class TxnVerifer{
       warnings:[]
     };
     const Required = ["type", "from", "fee", "firstRound", "lastRound", "genesisHash"];
-    const Optional = ["gen", "grp", "lx", "note", "rekey"];
+    const Optional = ["genesisId", "group", "lease", "note", "reKeyTo"];
     const AssetParamsOpt = ["un", "an", "au", "am", "m", "r", "f", "c"];
     const AppCallOpt = ["apat", "apap", "apaa", "apsu", "apfa", "apas", "appLocalInts", "appLocalByteSlices", "appGlobalInts", "appGlobalByteSlices", "apep"];
     for(var requirement of Required){
@@ -71,22 +71,22 @@ export default class TxnVerifer{
     if(this.errorCheck.valid===true){
       for(var option of Optional){
         if(txn.hasOwnProperty(option)){
-          if(option === "gen"){
+          if(option === "genesisId"){
             if(typeof txn[option] !== "string"){
-              this.throw(4300, 'gen must be a string');
+              this.throw(4300, 'genesisId must be a string');
             }
-            if(this.idTable[txn[option]] !== txn["genesisHash"]){
-              this.throw(4300, 'gen must match the same network as genesisHash');
-            }
-          }
-          if(option === "grp"){
-            if(!txn[option] instanceof Uint32Array){
-              this.throw(4300, 'grp must be a Uint32Array');
+            if(this.idTable[txn[option]] !== this.buf264(txn["genesisHash"])){
+              this.throw(4300, 'genesisId must match the same network as genesisHash');
             }
           }
-          if(option === "lx"){
+          if(option === "group"){
             if(!txn[option] instanceof Uint32Array){
-              this.throw(4300, 'lx must be a Uint32Array');
+              this.throw(4300, 'group must be a Uint32Array');
+            }
+          }
+          if(option === "lease"){
+            if(!txn[option] instanceof Uint32Array){
+              this.throw(4300, 'lease must be a Uint32Array');
             }
           }
           if(option === "note"){
@@ -94,9 +94,9 @@ export default class TxnVerifer{
               this.throw(4300, 'note must be a UintArray with the amount of bytes less than or equal to 1000');
             }
           }
-          if(option === "rekey"){
+          if(option === "reKeyTo"){
             if(!this.checkAddress(txn[option])){
-              this.throw(4300, 'rekey must be a valid authorized address');
+              this.throw(4300, 'reKeyTo must be a valid authorized address');
             } else {
               this.errorCheck.warnings.push('this transaction involves rekeying');
             }
@@ -116,7 +116,7 @@ export default class TxnVerifer{
         } else {
           this.throw(4300, 'to and amount fields are required in Payment Transaction');
         }
-        if(txn.hasOwnProperty('close') && !this.checkAddress(txn.close)){
+        if(txn.hasOwnProperty('closeRemainderTo') && !this.checkAddress(txn.closeRemainderTo)){
           this.throw(4300, 'close must be a valid CloseRemainderTo address');
         }
       }
@@ -124,54 +124,47 @@ export default class TxnVerifer{
         this.throw(4200, 'this wallet does not support a Key Registration Txn');
       }
       else if(txn.type === "acfg"){
-        if(txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('apar')){
-          if(!Number.isInteger(txn.assetIndex) || txn.assetIndex<0 || txn.assetIndex>this.max64){
+        if(txn.hasOwnProperty('assetIndex')){
+          if(this.checkInt(assetIndex)){
             this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
           }
-          if(txn.assetIndex === 0){
-            if(!Number.isInteger(txn.apar.t) || txn.apar.t<1 || txn.apar.t>this.max64){
-              this.throw(4300, 'apar.t must be a uint64 between 1 and 18446744073709551615');
-            }
-            if(!Number.isInteger(txn.apar.dc) || txn.apar.dc<0 || txn.apar.dc>19){
-              this.throw(4300, 'apar.dc must be a uint32 between 0 and 19');
-            }
-            if(typeof txn.apar.df !== 'boolean'){
-              this.throw(4300, 'apar.df must be a boolean')
-            }
+        }
+        else if(txn.hasOwnProperty('assetDecimals') && txn.hasOwnProperty('assetDefaultFrozen') && txn.hasOwnProperty('assetTotal')){
+          if(!this.checkInt(txn.assetDecimals,max=19)){
+            this.throw(4300, 'assetDecimals must be a uint32 between 0 and 19');
           }
-          if(txn.hasOwnProperty('apar')){
-            for (var opt of AssetParamsOpt){
-              if(txn.apar.hasOwnProperty(opt)){
-                if(opt === "un"){
-                  if(typeof txn.apar[opt] !== "string" || this.stringBytes(txn.apar[opt])>8){
-                    this.throw(4300, 'apar.un must be a string that is 8 bytes or less');
-                  }
-                }
-                if(opt === "an"){
-                  if(typeof txn.apar[opt] !== "string" || this.stringBytes(txn.apar[opt])>32){
-                    this.throw(4300, 'apar.an must be a string that is 32 bytes or less');
-                  }
-                }
-                if(opt === "au"){
-                  if(typeof txn.apar[opt] !== "string" || this.stringBytes(txn.apar[opt])>96){
-                    this.throw(4300, 'apar.au must be a string that is 96 bytes or less');
-                  }
-                }
-                if(opt === "am"){
-                  if(txn.apar[opt].byteLength === undefined){
-                    this.throw(4300, 'apar.am must be a UintArray, preferrably 32-byte');
-                  }
-                }
-                if(opt === "m" || opt === "r" || opt === "f" || opt === "c"){
-                  if(!this.checkAddress(txn.apar[opt])){
-                    this.throw(4300, 'apar.'+opt+' must be a valid address');
-                  }
-                }
-              }
-            }
+          if(!this.checkBoolean(txn.assetDefaultFrozen)){
+            this.throw(4300, 'assetDefaultFrozen must be a boolean');
+          }
+          if(!this.checkInt(txn.assetTotal,min=1)){
+            this.throw(4300, 'assetTotal must be a uint64 between 1 and 18446744073709551615');
           }
         } else {
-          this.throw(4300, 'assetIndex and apar fields are required in Asset Config Txn; 0 for assetIndex on asset creation; apar is omitted on asset destroy');
+          this.throw(4300, 'required fields need to be filled for Asset Config, Create, or Destroy txn');
+        }
+        if(txn.hasOwnProperty('assetClawback') && !this.checkAddress(txn.assetClawback)){
+          this.throw(4300, 'assetClawback must be a valid address');
+        }
+        if(txn.hasOwnProperty('assetFreeze') && !this.checkAddress(txn.assetFreeze)){
+          this.throw(4300, 'assetFreeze must be a valid address');
+        }
+        if(txn.hasOwnProperty('assetManager') && !this.checkAddress(txn.assetManager)){
+          this.throw(4300, 'assetManager must be a valid address');
+        }
+        if(txn.hasOwnProperty('assetReserve') && !this.checkAddress(txn.assetReserve)){
+          this.throw(4300, 'assetReserve must be a valid address');
+        }
+        if(txn.hasOwnProperty('assetMetadataHash') && !(this.checkString(txn.assetMetadataHash,min=32,max=32) || this.checkUint8(txn.assetMetadataHash,min=32,max=32))){
+          this.throw(4300, 'assetMetadataHash must be a valid string or Uint8Array that is 32 bytes in length');
+        }
+        if(txn.hasOwnProperty('assetName') && !this.checkString(txn.assetName, max=32)){
+          this.throw(4300, 'assetName must be a string with a max length of 32 bytes');
+        }
+        if(txn.hasOwnProperty('assetURL') && !this.checkString(txn.assetURL, max=96)){
+          this.throw(4300, 'assetURL must be a string with a max length of 96 bytes');
+        }
+        if(txn.hasOwnProperty('assetUnitName') && !this.checkString(txn.assetUnitName, max=8)){
+          this.throw(4300, 'assetUnitName must be a string with a max length of 8 bytes');
         }
       }
       else if(txn.type === "axfer"){
@@ -296,6 +289,39 @@ export default class TxnVerifer{
         return String.fromCharCode(ch);
     }).join('');
     return btoa(binstr);
+  }
+  checkInt(value, min, max){
+    if(min === undefined){
+      min = 0;
+    }
+    if(max === undefined){
+      max = this.max64;
+    }
+    if(Number.isInteger(value) && value>=min && value<=max){
+      return true;
+    } return false;
+  }
+  checkString(value, min, max){
+    if(min === undefined){
+      min = 0;
+    }
+    if(max === undefined){
+      max = this.max64;
+    }
+    if(typeof value === 'string' && value.length>=min && value.length<=max){
+      return true;
+    } return false;
+  }
+  checkUint8(value, min, max){
+    if(min === undefined){
+      min = 0;
+    }
+    if(max === undefined){
+      max = this.max64;
+    }
+    if(value.byteLength !== 'undefined' && value.byteLength>=min && value.byteLength<=max){
+      return true;
+    } return false;
   }
   checkAddress(addr){
     try{
