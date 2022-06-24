@@ -77,18 +77,18 @@ export default class TxnVerifer{
               this.throw(4300, 'genesisId must match the same network as genesisHash');
             }
           }
-          if(option === "group"){
-            if(!txn[option] instanceof Uint32Array){
-              this.throw(4300, 'group must be a Uint32Array');
+          if(option === "group" && txn.group !== undefined){
+            if(!this.checkUint8({value:txn[option]})){
+              this.throw(4300, 'group must be a Uint8Array');
             }
           }
           if(option === "lease"){
-            if(!txn[option] instanceof Uint32Array){
-              this.throw(4300, 'lease must be a Uint32Array');
+            if(!this.checkUint8({value:txn[option]})){
+              this.throw(4300, 'lease must be a Uint8Array');
             }
           }
           if(option === "note"){
-            if(txn[option].byteLength>1000){
+            if(!this.checkUint8({value:txn[option], max:1000})){
               this.throw(4300, 'note must be a UintArray with the amount of bytes less than or equal to 1000');
             }
           }
