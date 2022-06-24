@@ -17,8 +17,6 @@ export default class TxnVerifer{
     };
     const Required = ["type", "from", "fee", "firstRound", "lastRound", "genesisHash"];
     const Optional = ["genesisId", "group", "lease", "note", "reKeyTo"];
-    const AssetParamsOpt = ["un", "an", "au", "am", "m", "r", "f", "c"];
-    const AppCallOpt = ["apat", "apap", "apaa", "apsu", "apfa", "apas", "appLocalInts", "appLocalByteSlices", "appGlobalInts", "appGlobalByteSlices", "apep"];
     for(var requirement of Required){
       if(!txn[requirement]){
         this.throw(4300, 'Required field missing: '+requirement);
@@ -108,9 +106,9 @@ export default class TxnVerifer{
       if(txn.type === "pay"){
         if(txn.hasOwnProperty('to') && txn.hasOwnProperty('amount')){
           if(!this.checkAddress(txn.to)){
-            this.throw(4300, 'to must be a valid receiver address');
+            this.throw(4300, 'to must be a valid address');
           }
-          if(!Number.isInteger(txn.amount) || txn.amount<0 || txn.amount>this.max64){
+          if(!this.checkInt({value:txn.amount})){
             this.throw(4300, 'amount must be a uint64 between 0 and 18446744073709551615');
           }
         } else {
@@ -125,18 +123,18 @@ export default class TxnVerifer{
       }
       else if(txn.type === "acfg"){
         if(txn.hasOwnProperty('assetIndex')){
-          if(this.checkInt(assetIndex)){
+          if(!this.checkInt({value:txn.assetIndex})){
             this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
           }
         }
         else if(txn.hasOwnProperty('assetDecimals') && txn.hasOwnProperty('assetDefaultFrozen') && txn.hasOwnProperty('assetTotal')){
-          if(!this.checkInt(txn.assetDecimals,max=19)){
+          if(!this.checkInt({value:txn.assetDecimals,max:19})){
             this.throw(4300, 'assetDecimals must be a uint32 between 0 and 19');
           }
           if(!this.checkBoolean(txn.assetDefaultFrozen)){
             this.throw(4300, 'assetDefaultFrozen must be a boolean');
           }
-          if(!this.checkInt(txn.assetTotal,min=1)){
+          if(!this.checkInt({value:txn.assetTotal,min:1})){
             this.throw(4300, 'assetTotal must be a uint64 between 1 and 18446744073709551615');
           }
         } else {
@@ -154,28 +152,28 @@ export default class TxnVerifer{
         if(txn.hasOwnProperty('assetReserve') && !this.checkAddress(txn.assetReserve)){
           this.throw(4300, 'assetReserve must be a valid address');
         }
-        if(txn.hasOwnProperty('assetMetadataHash') && !(this.checkString(txn.assetMetadataHash,min=32,max=32) || this.checkUint8(txn.assetMetadataHash,min=32,max=32))){
+        if(txn.hasOwnProperty('assetMetadataHash') && !(this.checkString({value:txn.assetMetadataHash,min:32,max:32}) || this.checkUint8({value:txn.assetMetadataHash,min:32,max:32}))){
           this.throw(4300, 'assetMetadataHash must be a valid string or Uint8Array that is 32 bytes in length');
         }
-        if(txn.hasOwnProperty('assetName') && !this.checkString(txn.assetName, max=32)){
+        if(txn.hasOwnProperty('assetName') && !this.checkString({value:txn.assetName, max:32})){
           this.throw(4300, 'assetName must be a string with a max length of 32 bytes');
         }
-        if(txn.hasOwnProperty('assetURL') && !this.checkString(txn.assetURL, max=96)){
+        if(txn.hasOwnProperty('assetURL') && !this.checkString({value:txn.assetURL, max:96})){
           this.throw(4300, 'assetURL must be a string with a max length of 96 bytes');
         }
-        if(txn.hasOwnProperty('assetUnitName') && !this.checkString(txn.assetUnitName, max=8)){
+        if(txn.hasOwnProperty('assetUnitName') && !this.checkString({value:txn.assetUnitName, max:8})){
           this.throw(4300, 'assetUnitName must be a string with a max length of 8 bytes');
         }
       }
       else if(txn.type === "axfer"){
-        if(txn.hasOwnProperty('amount') && txn.hasOwnProperty('assetIndex' && txn.hasOwnProperty('to'))){
-          if(!this.checkInt(txn.amount)){
+        if(txn.hasOwnProperty('amount') && txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('to')){
+          if(!this.checkInt({value:txn.amount})){
             this.throw(4300, 'amount must be a uint64 between 0 and 18446744073709551615');
           }
-          if(this.checkInt(txn.assetIndex)){
+          if(!this.checkInt({value:txn.assetIndex})){
             this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
           }
-          if(this.checkAddress(txn.to)){
+          if(!this.checkAddress(txn.to)){
             this.throw(4300, 'to must be a valid address');
           }
         } else {
@@ -184,13 +182,13 @@ export default class TxnVerifer{
         if(txn.hasOwnProperty('closeRemainderTo') && !this.checkAddress(txn.closeRemainderTo)){
           this.throw(4300, 'closeRemainderTo must be a valid address');
         }
-        if(txn.hasOwnProperty('assetRevocationTarget') && this.checkAddress(txn.assetRevocationTarget)){
+        if(txn.hasOwnProperty('assetRevocationTarget') && !this.checkAddress(txn.assetRevocationTarget)){
           this.throw(4300, 'assetRevocationTarget must be a valid address');
         }
       }
       else if(txn.type === "afrz"){
         if(txn.hasOwnProperty('assetIndex') && txn.hasOwnProperty('freezeState') && txn.hasOwnProperty('freezeAccount')){
-          if(this.checkInt(txn.assetIndex)){
+          if(!this.checkInt({value:txn.assetIndex})){
             this.throw(4300, 'assetIndex must be a uint64 between 0 and 18446744073709551615');
           }
           if(!this.checkBoolean(txn.freezeState)){
@@ -204,92 +202,93 @@ export default class TxnVerifer{
         }
       }
       else if(txn.type === "appl"){
-        //create
+        //appl create
         if(txn.hasOwnProperty('appIndex') && txn.hasOwnProperty('appApprovalProgram') && txn.hasOwnProperty('appClearProgram') && txn.hasOwnProperty('appGlobalByteSlices') && txn.hasOwnProperty('appGlobalInts') && txn.hasOwnProperty('appLocalByteSlices') && txn.hasOwnProperty('appLocalInts') && txn.hasOwnProperty('onComplete')){
-          if(this.checkInt(txn.appIndex)){
+          if(!this.checkInt({value:txn.appIndex})){
             this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
           }
-          if(!this.checkUint8(txn.appApprovalProgram),max=2048){
+          if(!this.checkUint8({value:txn.appApprovalProgram,max:2048})){
             throw(4300,'appApprovalProgram must be a Uint8Array that is less than 2048 bytes');
           }
-          if(!this.checkUint8(txn.appClearProgram),max=2048){
+          if(!this.checkUint8({value:txn.appClearProgram,max:2048})){
             throw(4300,'appClearProgram must be a Uint8Array that is less than 2048 bytes');
           }
-          if(this.checkInt(txn.appGlobalByteSlices,max=16)){
-            this.throw(4300, 'appGlobalByteSlices must be a uint64 between 0 and 16');
+          if(!this.checkInt({value:txn.appGlobalByteSlices})){
+            this.throw(4300, 'appGlobalByteSlices must be a uint64 between 0 and 18446744073709551615');
           }
-          if(this.checkInt(txn.appGlobalInts,max=16)){
-            this.throw(4300, 'appGlobalInts must be a uint64 between 0 and 16');
+          if(!this.checkInt({value:txn.appGlobalInts})){
+            this.throw(4300, 'appGlobalInts must be a uint64 between 0 and 18446744073709551615');
           }
-          if(this.checkInt(txn.appLocalByteSlices,max=16)){
-            this.throw(4300, 'appLocalByteSlices must be a uint64 between 0 and 16');
+          if(!this.checkInt({value:txn.appLocalByteSlices})){
+            this.throw(4300, 'appLocalByteSlices must be a uint64 between 0 and 18446744073709551615');
           }
-          if(this.checkInt(txn.appLocalInts,max=16)){
-            this.throw(4300, 'appLocalInts must be a uint64 between 0 and 16');
+          if(!this.checkInt({value:txn.appLocalInts})){
+            this.throw(4300, 'appLocalInts must be a uint64 between 0 and 18446744073709551615');
           }
-          if(this.checkInt(txn.appOnComplete,max=5)){
-            this.throw(4300, 'appOnComplete must be a uint64 between 0 and 16');
+          if(!this.checkInt({value:txn.appOnComplete,max:5})){
+            this.throw(4300, 'appOnComplete must be a uint64 between 0 and 5');
           }
         }
+        //appl call
         else if(txn.hasOwnProperty('appIndex') && txn.hasOwnProperty('onComplete')){
-          if(this.checkInt(txn.appIndex)){
+          if(!this.checkInt({value:txn.appIndex})){
             this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
           }
-          if(this.checkInt(txn.appOnComplete,max=5)){
-            this.throw(4300, 'appOnComplete must be a uint64 between 0 and 16');
+          if(!this.checkInt({value:txn.appOnComplete,max:5})){
+            this.throw(4300, 'appOnComplete must be a uint64 between 0 and 5');
           }
         }
         else if(txn.hasOwnProperty('appIndex') && txn.hasOwnProperty('appApprovalProgram') && txn.hasOwnProperty('appClearProgram')){
-            if(this.checkInt(txn.appIndex)){
+            if(!this.checkInt({value:txn.appIndex})){
               this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
             }
-            if(!this.checkUint8(txn.appApprovalProgram),max=2048){
+            if(!this.checkUint8({value:txn.appApprovalProgram,max:2048})){
               throw(4300,'appApprovalProgram must be a Uint8Array that is less than 2048 bytes');
             }
-            if(!this.checkUint8(txn.appClearProgram),max=2048){
+            if(!this.checkUint8({value:txn.appClearProgram,max:2048})){
               throw(4300,'appClearProgram must be a Uint8Array that is less than 2048 bytes');
             }
           }
-        //clearState, closeOut, delete, noOp, optIn
+        //appl clearState, closeOut, delete, noOp, optIn
         else if(txn.hasOwnProperty('appIndex')){
-            if(this.checkInt(txn.appIndex)){
+            if(!this.checkInt({value:txn.appIndex})){
               this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
             }
         } else{
           throw(4300, 'all required fields need to be filled depending on the target ApplicationTxn');
         }
         //optional appl params
-        if(txn.hasOwnProperty('accounts') && this.arrayAddressCheck(txn.appAccounts)){
+        if(txn.hasOwnProperty('accounts') && !this.arrayAddressCheck(txn.appAccounts)){
           this.throw(4300, 'account must be an array of valid addresses');
         }
-        if(txn.hasOwnProperty('appArgs') && this.arrayUint8Check(txn.appArgs)){
+        if(txn.hasOwnProperty('appArgs') && !this.arrayUint8Check(txn.appArgs)){
           this.throw(4300, 'appArgs must be an array of Uint8Arrays');
         }
-        if(!this.checkUint8(txn.appApprovalProgram),max=2048){
+        if(txn.hasOwnProperty('appApprovalProgram') && !this.checkUint8({value:txn.appApprovalProgram,max:2048})){
           throw(4300,'appApprovalProgram must be a Uint8Array that is less than 2048 bytes');
         }
-        if(!this.checkUint8(txn.appClearProgram),max=2048){
+        if(txn.hasOwnProperty('appClearProgram') && !this.checkUint8({value:txn.appClearProgram,max:2048})){
           throw(4300,'appClearProgram must be a Uint8Array that is less than 2048 bytes');
         }
-        if(this.checkInt(txn.appGlobalByteSlices,max=16)){
-          this.throw(4300, 'appGlobalByteSlices must be a uint64 between 0 and 16');
+        if(txn.hasOwnProperty('appGlobalByteSlices') && !this.checkInt({value:txn.appGlobalByteSlices})){
+          this.throw(4300, 'appGlobalByteSlices must be a uint64 between 0 and 18446744073709551615');
         }
-        if(this.checkInt(txn.appGlobalInts,max=16)){
-          this.throw(4300, 'appGlobalInts must be a uint64 between 0 and 16');
+        if(txn.hasOwnProperty('appGlobalInts') && !this.checkInt({value:txn.appGlobalInts})){
+          this.throw(4300, 'appGlobalInts must be a uint64 between 0 and 18446744073709551615');
         }
-        if(this.checkInt(txn.appLocalByteSlices,max=16)){
-          this.throw(4300, 'appLocalByteSlices must be a uint64 between 0 and 16');
+        if(txn.hasOwnProperty('appLocalByteSlices') && !this.checkInt({value:txn.appLocalByteSlices})){
+          this.throw(4300, 'appLocalByteSlices must be a uint64 between 0 and 18446744073709551615');
         }
-        if(this.checkInt(txn.appLocalInts,max=16)){
-          this.throw(4300, 'appLocalInts must be a uint64 between 0 and 16');
+        if(txn.hasOwnProperty('appLocalInts') && !this.checkInt({value:txn.appLocalInts})){
+          this.throw(4300, 'appLocalInts must be a uint64 between 0 and 18446744073709551615');
         }
-        if(txn.hasOwnProperty('extraPages') && this.checkInt(txn.extraPages,max=3)){
+        if(txn.hasOwnProperty('extraPages') && !this.checkInt({value:txn.extraPages,max:3})){
           this.throw(4300, 'extraPages must be a uint64 between 0 and 3');
         }
-        if(txn.hasOwnProperty('appForeignApps') && this.checkIntArray(txn.appForeignApps)){
+        if(txn.hasOwnProperty('appForeignApps') && !this.checkIntArray(txn.appForeignApps)){
           this.throw(4300, 'appForeignApps must be an array of uint64s between 0 and 18446744073709551615');
         }
-        if(txn.hasOwnProperty('appForeignAssets') && this.checkIntArray(txn.appForeignAssets)){
+        if(txn.hasOwnProperty('appForeignAssets') && !this.checkIntArray(txn.appForeignAssets)){
           this.throw(4300, 'appForeignAssets must be an array of uint64s between 0 and 18446744073709551615');
         }
       }
@@ -300,23 +299,20 @@ export default class TxnVerifer{
 
     return this.errorCheck;
   }
-  stringBytes(str){
-    return Buffer.from(str).length;
-  }
   buf264(buf){
     var binstr = Array.prototype.map.call(buf, function (ch) {
         return String.fromCharCode(ch);
     }).join('');
     return btoa(binstr);
   }
-  checkInt(value, min, max){
-    if(min === undefined){
-      min = 0;
+  checkInt(intObj){
+    if(!intObj.hasOwnProperty('min')){
+      intObj.min = 0;
     }
-    if(max === undefined){
-      max = this.max64;
+    if(!intObj.hasOwnProperty('max')){
+      intObj.max = this.max64;
     }
-    if(Number.isInteger(value) && value>=min && value<=max){
+    if(Number.isInteger(intObj.value) && intObj.value>=intObj.min && intObj.value<=intObj.max){
       return true;
     } return false;
   }
@@ -325,25 +321,25 @@ export default class TxnVerifer{
       return true;
     } return false;
   }
-  checkString(value, min, max){
-    if(min === undefined){
-      min = 0;
+  checkString(strObj){
+    if(!strObj.hasOwnProperty('min')){
+      strObj.min = 0;
     }
-    if(max === undefined){
-      max = this.max64;
+    if(!strObj.hasOwnProperty('max')){
+      strObj.max = this.max64;
     }
-    if(typeof value === 'string' && value.length>=min && value.length<=max){
+    if(typeof strObj.value === 'string' && strObj.value.length>=strObj.min && strObj.value.length<=strObj.max){
       return true;
     } return false;
   }
-  checkUint8(value, min, max){
-    if(min === undefined){
-      min = 0;
+  checkUint8(uintObj){
+    if(!uintObj.hasOwnProperty('min')){
+      uintObj.min = 0;
     }
-    if(max === undefined){
-      max = this.max64;
+    if(!uintObj.hasOwnProperty('max')){
+      uintObj.max = this.max64;
     }
-    if(value.byteLength !== 'undefined' && value.byteLength>=min && value.byteLength<=max){
+    if(uintObj.value.byteLength !== 'undefined' && uintObj.value.byteLength>=uintObj.min && uintObj.value.byteLength<=uintObj.max){
       return true;
     } return false;
   }
@@ -378,7 +374,7 @@ export default class TxnVerifer{
   checkIntArray(array){
     if(Object.prototype.toString.call(array) === '[object Array]') {
       for(var value of array){
-        if!(Number.isInteger(value) && value>=0 && value<=this.max64){
+        if(!Number.isInteger(value) || value<0 || value>this.max64){
           return false;
         }
       }
