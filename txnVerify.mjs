@@ -203,7 +203,7 @@ export default class TxnVerifer{
       }
       else if(txn.type === "appl"){
         //appl create
-        if(txn.hasOwnProperty('appIndex') && txn.hasOwnProperty('appApprovalProgram') && txn.hasOwnProperty('appClearProgram') && txn.hasOwnProperty('appGlobalByteSlices') && txn.hasOwnProperty('appGlobalInts') && txn.hasOwnProperty('appLocalByteSlices') && txn.hasOwnProperty('appLocalInts') && txn.hasOwnProperty('onComplete')){
+        if(txn.hasOwnProperty('appIndex') && txn.hasOwnProperty('appApprovalProgram') && txn.hasOwnProperty('appClearProgram') && txn.hasOwnProperty('appGlobalByteSlices') && txn.hasOwnProperty('appGlobalInts') && txn.hasOwnProperty('appLocalByteSlices') && txn.hasOwnProperty('appLocalInts') && txn.hasOwnProperty('appOnComplete')){
           if(!this.checkInt({value:txn.appIndex})){
             this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
           }
@@ -230,7 +230,7 @@ export default class TxnVerifer{
           }
         }
         //appl call
-        else if(txn.hasOwnProperty('appIndex') && txn.hasOwnProperty('onComplete')){
+        else if(txn.hasOwnProperty('appIndex') && txn.hasOwnProperty('appOnComplete')){
           if(!this.checkInt({value:txn.appIndex})){
             this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
           }

@@ -124,6 +124,8 @@ async function testTxns(){
   console.log('valid application closeOut txn: ',verifier.verifyTxn(applTxn),'\n');
   applTxn = algosdk.makeApplicationCreateTxnFromObject(overallParams);
   console.log('valid application create txn: ',verifier.verifyTxn(applTxn),'\n');
+  applTxn.appOnComplete=600;
+  console.log('invalid appOnComplete: ',verifier.verifyTxn(applTxn),'\n');
   applTxn = algosdk.makeApplicationDeleteTxnFromObject(overallParams);
   console.log('valid application delete txn: ',verifier.verifyTxn(applTxn),'\n');
   applTxn = algosdk.makeApplicationNoOpTxnFromObject(overallParams);
