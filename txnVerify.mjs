@@ -177,7 +177,7 @@ export default class TxnVerifer{
             this.throw(4300, 'to must be a valid address');
           }
         } else {
-          throw(4300, 'amount, assetIndex, and to fields are required in Asset Transfer Txn');
+          this.throw(4300, 'amount, assetIndex, and to fields are required in Asset Transfer Txn');
         }
         if(txn.hasOwnProperty('closeRemainderTo') && !this.checkAddress(txn.closeRemainderTo)){
           this.throw(4300, 'closeRemainderTo must be a valid address');
@@ -208,10 +208,10 @@ export default class TxnVerifer{
             this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
           }
           if(!this.checkUint8({value:txn.appApprovalProgram,max:2048})){
-            throw(4300,'appApprovalProgram must be a Uint8Array that is less than 2048 bytes');
+            this.throw(4300,'appApprovalProgram must be a Uint8Array that is less than 2048 bytes');
           }
           if(!this.checkUint8({value:txn.appClearProgram,max:2048})){
-            throw(4300,'appClearProgram must be a Uint8Array that is less than 2048 bytes');
+            this.throw(4300,'appClearProgram must be a Uint8Array that is less than 2048 bytes');
           }
           if(!this.checkInt({value:txn.appGlobalByteSlices})){
             this.throw(4300, 'appGlobalByteSlices must be a uint64 between 0 and 18446744073709551615');
@@ -243,10 +243,10 @@ export default class TxnVerifer{
               this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
             }
             if(!this.checkUint8({value:txn.appApprovalProgram,max:2048})){
-              throw(4300,'appApprovalProgram must be a Uint8Array that is less than 2048 bytes');
+              this.throw(4300,'appApprovalProgram must be a Uint8Array that is less than 2048 bytes');
             }
             if(!this.checkUint8({value:txn.appClearProgram,max:2048})){
-              throw(4300,'appClearProgram must be a Uint8Array that is less than 2048 bytes');
+              this.throw(4300,'appClearProgram must be a Uint8Array that is less than 2048 bytes');
             }
           }
         //appl clearState, closeOut, delete, noOp, optIn
@@ -255,7 +255,7 @@ export default class TxnVerifer{
               this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
             }
         } else{
-          throw(4300, 'all required fields need to be filled depending on the target ApplicationTxn');
+          this.throw(4300, 'all required fields need to be filled depending on the target ApplicationTxn');
         }
         //optional appl params
         if(txn.hasOwnProperty('accounts') && !this.arrayAddressCheck(txn.appAccounts)){
@@ -265,10 +265,10 @@ export default class TxnVerifer{
           this.throw(4300, 'appArgs must be an array of Uint8Arrays');
         }
         if(txn.hasOwnProperty('appApprovalProgram') && !this.checkUint8({value:txn.appApprovalProgram,max:2048})){
-          throw(4300,'appApprovalProgram must be a Uint8Array that is less than 2048 bytes');
+          this.throw(4300,'appApprovalProgram must be a Uint8Array that is less than 2048 bytes');
         }
         if(txn.hasOwnProperty('appClearProgram') && !this.checkUint8({value:txn.appClearProgram,max:2048})){
-          throw(4300,'appClearProgram must be a Uint8Array that is less than 2048 bytes');
+          this.throw(4300,'appClearProgram must be a Uint8Array that is less than 2048 bytes');
         }
         if(txn.hasOwnProperty('appGlobalByteSlices') && !this.checkInt({value:txn.appGlobalByteSlices})){
           this.throw(4300, 'appGlobalByteSlices must be a uint64 between 0 and 18446744073709551615');
@@ -293,7 +293,7 @@ export default class TxnVerifer{
         }
       }
       else{
-        throw(4300, 'must specify the type of transaction');
+        this.throw(4300, 'must specify the type of transaction');
       }
     }
 
