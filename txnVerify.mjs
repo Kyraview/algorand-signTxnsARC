@@ -203,57 +203,20 @@ export default class TxnVerifer{
       }
       else if(txn.type === "appl"){
         //appl create
-        if(txn.hasOwnProperty('appIndex') && txn.hasOwnProperty('appApprovalProgram') && txn.hasOwnProperty('appClearProgram') && txn.hasOwnProperty('appGlobalByteSlices') && txn.hasOwnProperty('appGlobalInts') && txn.hasOwnProperty('appLocalByteSlices') && txn.hasOwnProperty('appLocalInts') && txn.hasOwnProperty('appOnComplete')){
-          if(!this.checkInt({value:txn.appIndex})){
-            this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
-          }
-          if(!this.checkUint8({value:txn.appApprovalProgram,max:2048})){
-            this.throw(4300,'appApprovalProgram must be a Uint8Array that is less than 2048 bytes');
-          }
-          if(!this.checkUint8({value:txn.appClearProgram,max:2048})){
-            this.throw(4300,'appClearProgram must be a Uint8Array that is less than 2048 bytes');
-          }
-          if(!this.checkInt({value:txn.appGlobalByteSlices})){
-            this.throw(4300, 'appGlobalByteSlices must be a uint64 between 0 and 18446744073709551615');
-          }
-          if(!this.checkInt({value:txn.appGlobalInts})){
-            this.throw(4300, 'appGlobalInts must be a uint64 between 0 and 18446744073709551615');
-          }
-          if(!this.checkInt({value:txn.appLocalByteSlices})){
-            this.throw(4300, 'appLocalByteSlices must be a uint64 between 0 and 18446744073709551615');
-          }
-          if(!this.checkInt({value:txn.appLocalInts})){
-            this.throw(4300, 'appLocalInts must be a uint64 between 0 and 18446744073709551615');
-          }
-          if(!this.checkInt({value:txn.appOnComplete,max:5})){
-            this.throw(4300, 'appOnComplete must be a uint64 between 0 and 5');
-          }
+        if(txn.hasOwnProperty('appApprovalProgram') && txn.hasOwnProperty('appClearProgram') && txn.hasOwnProperty('appGlobalByteSlices') && txn.hasOwnProperty('appGlobalInts') && txn.hasOwnProperty('appLocalByteSlices') && txn.hasOwnProperty('appLocalInts')){
+          console.log('appl create');
         }
         //appl call
         else if(txn.hasOwnProperty('appIndex') && txn.hasOwnProperty('appOnComplete')){
-          if(!this.checkInt({value:txn.appIndex})){
-            this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
-          }
-          if(!this.checkInt({value:txn.appOnComplete,max:5})){
-            this.throw(4300, 'appOnComplete must be a uint64 between 0 and 5');
-          }
+          console.log('appl call');
         }
+        //appl update
         else if(txn.hasOwnProperty('appIndex') && txn.hasOwnProperty('appApprovalProgram') && txn.hasOwnProperty('appClearProgram')){
-            if(!this.checkInt({value:txn.appIndex})){
-              this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
-            }
-            if(!this.checkUint8({value:txn.appApprovalProgram,max:2048})){
-              this.throw(4300,'appApprovalProgram must be a Uint8Array that is less than 2048 bytes');
-            }
-            if(!this.checkUint8({value:txn.appClearProgram,max:2048})){
-              this.throw(4300,'appClearProgram must be a Uint8Array that is less than 2048 bytes');
-            }
-          }
+            console.log('appl update');
+        }
         //appl clearState, closeOut, delete, noOp, optIn
         else if(txn.hasOwnProperty('appIndex')){
-            if(!this.checkInt({value:txn.appIndex})){
-              this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
-            }
+          console.log('appl clearState, closeOut, delete, noOp, or optIn txn');
         } else{
           this.throw(4300, 'all required fields need to be filled depending on the target ApplicationTxn');
         }
@@ -276,11 +239,17 @@ export default class TxnVerifer{
         if(txn.hasOwnProperty('appGlobalInts') && !this.checkInt({value:txn.appGlobalInts})){
           this.throw(4300, 'appGlobalInts must be a uint64 between 0 and 18446744073709551615');
         }
+        if(txn.hasOwnProperty('appIndex') && !this.checkInt({value:txn.appIndex})){
+          this.throw(4300, 'appIndex must be a uint64 between 0 and 18446744073709551615');
+        }
         if(txn.hasOwnProperty('appLocalByteSlices') && !this.checkInt({value:txn.appLocalByteSlices})){
           this.throw(4300, 'appLocalByteSlices must be a uint64 between 0 and 18446744073709551615');
         }
         if(txn.hasOwnProperty('appLocalInts') && !this.checkInt({value:txn.appLocalInts})){
           this.throw(4300, 'appLocalInts must be a uint64 between 0 and 18446744073709551615');
+        }
+        if(txn.hasOwnProperty('appOnComplete') && !this.checkInt({value:txn.appOnComplete,max:5})){
+          this.throw(4300, 'appOnComplete must be a uint64 between 0 and 5');
         }
         if(txn.hasOwnProperty('extraPages') && !this.checkInt({value:txn.extraPages,max:3})){
           this.throw(4300, 'extraPages must be a uint64 between 0 and 3');
