@@ -58,6 +58,7 @@ async function testTxns(){
   }
   
   let payTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(overallParams);
+  console.log(payTxn);
   console.log('valid payment txn: ',verifier.verifyTxn(payTxn),'\n');
   payTxn.to='wrong';
   console.log('invalid to address: ',verifier.verifyTxn(payTxn),'\n');
@@ -107,6 +108,7 @@ async function testTxns(){
 
   let afrzTxn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject(overallParams);
   console.log('valid asset freeze txn: ',verifier.verifyTxn(afrzTxn),'\n');
+  console.log(afrzTxn);
   afrzTxn.assetIndex='wrong';
   console.log('invalid assetIndex: ',verifier.verifyTxn(afrzTxn),'\n');
   afrzTxn.freezeAccount=-15;
