@@ -60,7 +60,7 @@ export default class TxnVerifer{
           }
         }
         if(requirement === "type"){
-          if(!this.checkString({value:txn[requirement])){
+          if(!this.checkString({value:txn[requirement]})){
             this.throw(4300, 'type must be a string');
           }
         }
@@ -70,7 +70,7 @@ export default class TxnVerifer{
       for(var option of Optional){
         if(txn.hasOwnProperty(option)){
           if(option === "genesisId"){
-            if(!this.checkString({value:txn[option])){
+            if(!this.checkString({value:txn[option]})){
               this.throw(4300, 'genesisId must be a string');
             }
             if(this.idTable[txn[option]] !== this.buf264(txn["genesisHash"])){
