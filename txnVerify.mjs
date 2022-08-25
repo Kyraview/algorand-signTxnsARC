@@ -8,13 +8,18 @@ export default class TxnVerifer{
         "testnet-v1.0":	"SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
         "betanet-v1.0":	"mFgazF+2uRS1tMiL9dsj01hJGySEmPN28B/TjjvpVW0="};
   }
-  verifyTxn(txn){
+  verifyTxn(txn, balance){
     this.errorCheck = 
     {   
       valid:true,
       error:[],
       warnings:[]
     };
+    
+    if (txn.hasOwnProperty('amount') && this.checkInt({value:txn.amount})){
+      balance -= txn.amount;
+    }
+    
     const Required = ["type", "from", "fee", "firstRound", "lastRound", "genesisHash"];
     const Optional = ["genesisId", "group", "lease", "note", "reKeyTo"];
     for(var requirement of Required){
@@ -29,6 +34,9 @@ export default class TxnVerifer{
           else{
             if(txn[fee] > 1000000){
               this.errorCheck.warnings.push('fee is very high: '+txn[fee]+' microalgos');
+            }
+            if(txn[fee]>balance){
+              this.throw(4300,'balance is not sufficient for transaction');
             }
           }
         }
@@ -268,6 +276,7 @@ export default class TxnVerifer{
 
     return this.errorCheck;
   }
+  
   buf264(buf){
     var binstr = Array.prototype.map.call(buf, function (ch) {
         return String.fromCharCode(ch);
