@@ -15,11 +15,7 @@ export default class TxnVerifer{
       error:[],
       warnings:[]
     };
-    
-    if (txn.hasOwnProperty('amount') && this.checkInt({value:txn.amount})){
-      balance -= txn.amount;
-    }
-    
+
     const Required = ["type", "from", "fee", "firstRound", "lastRound", "genesisHash"];
     const Optional = ["genesisId", "group", "lease", "note", "reKeyTo"];
     for(var requirement of Required){
@@ -34,9 +30,6 @@ export default class TxnVerifer{
           else{
             if(txn[fee] > 1000000){
               this.errorCheck.warnings.push('fee is very high: '+txn[fee]+' microalgos');
-            }
-            if(txn[fee]>balance){
-              this.throw(4300,'balance is not sufficient for transaction');
             }
           }
         }
@@ -118,6 +111,13 @@ export default class TxnVerifer{
           }
           if(!this.checkInt({value:txn.amount})){
             this.throw(4300, 'amount must be a uint64 between 0 and 18446744073709551615');
+          }
+          if(!this.checkInt({value:balance})){
+            this.throw(4300, 'balance must be a uint64 between 0 and 18446744073709551615');
+          } else {
+            if(balance<(txn.fee+txn.amount)){
+              this.throw(4300,'balance is not sufficient for transaction');
+            }
           }
         } else {
           this.throw(4300, 'to and amount fields are required in Payment Transaction');
